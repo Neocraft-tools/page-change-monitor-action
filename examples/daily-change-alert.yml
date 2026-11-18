@@ -1,0 +1,32 @@
+# Check pages every day; open a GitHub issue with the diff when something changed.
+name: Page change monitor
+on:
+  schedule:
+    - cron: "0 7 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  watch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - id: watch
+        uses: Neocraft-tools/page-change-monitor-action@v1
+        with:
+          apify-token: ${{ secrets.APIFY_TOKEN }}
+          urls: |
+            https://competitor.example.com/pricing
+            https://example.com/terms
+          mode: auto
+          max-total-charge-usd: "0.05"
+      - if: steps.watch.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh issue create --repo "$GITHUB_REPOSITORY" \
+            --title "Page change detected ($(date -u +%F))" \
+            --body-file "${{ steps.watch.outputs.diff-file }}"

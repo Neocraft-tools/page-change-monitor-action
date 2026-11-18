@@ -1,0 +1,102 @@
+name: "Page Change Monitor: Website Diff Alerts"
+description: "Detect changes on any web page (text, prices, terms, competitors) on a schedule and get the diff as outputs, job summary or a failing check."
+author: "Neocraft"
+branding:
+  icon: "eye"
+  color: "orange"
+
+inputs:
+  apify-token:
+    description: "Your Apify API token (store it as a secret). Runs are billed to this Apify account."
+    required: true
+  urls:
+    description: "Pages to watch, separated by commas or new lines."
+    required: true
+  monitor-name:
+    description: "Name of the monitor. The last snapshot of each page is stored under this name in your Apify account. Defaults to the repository name."
+    required: false
+    default: ""
+  selector:
+    description: "Optional CSS selector: only watch this part of the page (e.g. '#pricing')."
+    required: false
+    default: ""
+  ignore-selectors:
+    description: "Optional CSS selectors to ignore (comma or new-line separated), e.g. '.ads, #footer'."
+    required: false
+    default: ""
+  mode:
+    description: "Fetch mode: auto, http (cheapest) or browser (JavaScript pages)."
+    required: false
+    default: "auto"
+  screenshots:
+    description: "Store before/after screenshots of changed pages."
+    required: false
+    default: "false"
+  fail-on-change:
+    description: "Fail the step when at least one page changed (useful to get GitHub's failure e-mail as the alert)."
+    required: false
+    default: "false"
+  fail-on-error:
+    description: "Fail the step when a page could not be checked."
+    required: false
+    default: "false"
+  extra-input:
+    description: "Optional JSON object merged into the Actor input (any field of neocraft/page-change-monitor)."
+    required: false
+    default: ""
+  max-total-charge-usd:
+    description: "Hard spend cap for the run in USD."
+    required: false
+    default: "0.10"
+  timeout-secs:
+    description: "Maximum run time of the Actor in seconds."
+    required: false
+    default: "600"
+  output-file:
+    description: "Where to save the full JSON results (a Markdown diff is written next to it)."
+    required: false
+    default: "page-changes.json"
+
+outputs:
+  changed:
+    description: "true when at least one page changed since the previous run."
+    value: ${{ steps.run.outputs.changed }}
+  changed-count:
+    description: "Number of changed pages."
+    value: ${{ steps.run.outputs.changed-count }}
+  error-count:
+    description: "Number of pages that could not be checked."
+    value: ${{ steps.run.outputs.error-count }}
+  changes:
+    description: "JSON array of changed pages (url, summary, extracted values, diff counts)."
+    value: ${{ steps.run.outputs.changes }}
+  diff-file:
+    description: "Path of a Markdown file with the full diff of changed pages."
+    value: ${{ steps.run.outputs.diff-file }}
+  results-file:
+    description: "Path of the full JSON results."
+    value: ${{ steps.run.outputs.results-file }}
+  run-url:
+    description: "Apify Console URL of the run."
+    value: ${{ steps.run.outputs.run-url }}
+
+runs:
+  using: "composite"
+  steps:
+    - id: run
+      shell: bash
+      run: bash "${GITHUB_ACTION_PATH}/entrypoint.sh"
+      env:
+        APIFY_TOKEN: ${{ inputs.apify-token }}
+        INPUT_URLS: ${{ inputs.urls }}
+        INPUT_MONITOR_NAME: ${{ inputs.monitor-name }}
+        INPUT_SELECTOR: ${{ inputs.selector }}
+        INPUT_IGNORE_SELECTORS: ${{ inputs.ignore-selectors }}
+        INPUT_MODE: ${{ inputs.mode }}
+        INPUT_SCREENSHOTS: ${{ inputs.screenshots }}
+        INPUT_FAIL_ON_CHANGE: ${{ inputs.fail-on-change }}
+        INPUT_FAIL_ON_ERROR: ${{ inputs.fail-on-error }}
+        INPUT_EXTRA_INPUT: ${{ inputs.extra-input }}
+        INPUT_MAX_TOTAL_CHARGE_USD: ${{ inputs.max-total-charge-usd }}
+        INPUT_TIMEOUT_SECS: ${{ inputs.timeout-secs }}
+        INPUT_OUTPUT_FILE: ${{ inputs.output-file }}
