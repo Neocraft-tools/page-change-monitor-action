@@ -1,5 +1,5 @@
 name: "Page Change Monitor: Website Diff Alerts"
-description: "Detect changes on any web page (text, prices, terms, competitors) on a schedule and get the diff as outputs, job summary or a failing check."
+description: "Detect changes on any web page (text, prices, terms) on a schedule; get the diff as outputs or a failing check."
 author: "Neocraft"
 branding:
   icon: "eye"
